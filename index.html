@@ -1,121 +1,316 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Pot</title>
+    <title>Golf Stakes Calculator</title>
     <style>
-        body { font-family: sans-serif; background: #f0f4f0; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h1 { color: #2e7d32; text-align: center; }
-        label { display: block; margin-top: 15px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .btn-start { background: #2e7d32; color: white; }
-        .btn-winner { background: #ffc107; color: black; margin-bottom: 10px; }
-        .hidden { display: none; }
-        .result-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 18px; }
+        :root {
+            --primary: #2e7d32;
+            --secondary: #f1f8e9;
+            --accent: #1b5e20;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .setup-section, .golfer-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; /* Crucial for padding */
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(46, 125, 50, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-setup {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-setup:hover {
+            background-color: var(--accent);
+        }
+
+        .btn-calculate {
+            background-color: #0277bd;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-calculate:hover {
+            background-color: #01579b;
+        }
+
+        .golfer-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .golfer-row input[type="text"] {
+            flex: 2;
+        }
+
+        .golfer-row input[type="number"] {
+            flex: 1;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--secondary);
+            display: none;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #dcedc8;
+        }
+
         .win { color: #2e7d32; font-weight: bold; }
         .loss { color: #c62828; font-weight: bold; }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- SCREEN 1: SETUP -->
-    <div id="setup-screen" class="card">
-        <h1>⛳ Golf Pot</h1>
-        <label>Number of Players</label>
-        <input type="number" id="num-players" value="4">
-        <label>Stake per Hole ($)</label>
-        <input type="number" id="stake" value="5">
-        <label>Total Holes</label>
-        <input type="number" id="num-holes" value="18">
-        <button class="btn-start" onclick="startGame()">Start Round</button>
+<div class="container">
+    <h1>⛳ Golf Stakes</h1>
+
+    <!-- Step 1: Setup -->
+    <div id="setup-container" class="setup-section">
+        <div class="input-group">
+            <label>Number of Golfers</label>
+            <input type="number" id="num-golfers" min="2" value="4">
+        </div>
+        <div class="input-group">
+            <label>Stake per Hole ($)</label>
+            <input type="number" id="stake-per-hole" min="0.01" step="0.01" value="1.00">
+        </div>
+        <div class="input-group">
+            <label>Total Holes Played</label>
+            <input type="number" id="total-holes" min="1" value="18">
+        </div>
+        <button class="btn-setup" onclick="generateGolferInputs()">Set Up Players</button>
     </div>
 
-    <!-- SCREEN 2: PLAYING -->
-    <div id="game-screen" class="card hidden">
-        <h1 id="hole-display">Hole 1</h1>
-        <p style="text-align:center">Who won this hole?</p>
-        <div id="player-buttons"></div>
+    <!-- Step 2: Player Details (Hidden initially) -->
+    <div id="player-container" class="hidden">
+        <div id="golfer-inputs-list">
+            <!-- Dynamic inputs will appear here -->
+        </div>
+        <button class="btn-calculate" onclick="calculateResults()">Calculate Totals</button>
+        <button style="margin-top:10px; background: #9e9e9e; color: white;" onclick="resetApp()">Start Over</button>
     </div>
 
-    <!-- SCREEN 3: RESULTS -->
-    <div id="result-screen" class="card hidden">
-        <h1>Final Results</h1>
+    <!-- Step 3: Results -->
+    <div id="results">
+        <h3 style="margin-top: 0; text-align: center;">Round Results</h3>
         <div id="results-list"></div>
-        <button class="btn-start" onclick="location.reload()">New Game</button>
     </div>
+</div>
 
-    <script>
-        let players = [];
-        let stake = 0;
-        let totalHoles = 0;
-        let currentHole = 1;
+<script>
+    let stake = 0;
+    let totalHoles = 0;
 
-        function startGame() {
-            const n = parseInt(document.getElementById('num-players').value);
-            stake = parseFloat(document.getElementById('stake').value);
-            totalHoles = parseInt(document.getElementById('num-holes').value);
+    function generateGolferInputs() {
+        const numGolfers = parseInt(document.getElementById('num-golfers').value);
+        stake = parseFloat(document.getElementById('stake-per-hole').value);
+        totalHoles = parseInt(document.getElementById('total-holes').value);
 
-            if (n < 2) { alert("Need at least 2 players"); return; }
-
-            for (let i = 1; i <= n; i++) {
-                players.push({ name: "Player " + i, balance: 0 });
-            }
-
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            renderGame();
+        if (isNaN(numGolfers) || numGolfers < 2) {
+            alert("Please enter at least 2 golfers.");
+            return;
         }
 
-        function renderGame() {
-            document.getElementById('hole-display').innerText = "Hole " + currentHole + " / " + totalHoles;
-            const container = document.getElementById('player-buttons');
-            container.innerHTML = '';
+        const list = document.getElementById('golfer-inputs-list');
+        list.innerHTML = '<label style="margin-bottom: 15px;">Enter Names & Holes Won</label>';
 
-            players.forEach((p, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-winner';
-                btn.innerText = p.name;
-                btn.onclick = () => recordWinner(index);
-                container.appendChild(btn);
-            });
+        for (let i = 0; i < numGolfers; i++) {
+            const row = document.createElement('div');
+            row.className = 'golfer-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Golfer ${i+1}" class="g-name">
+                <input type="number" placeholder="Holes Won" class="g-wins" min="0" max="${totalHoles}">
+            `;
+            list.appendChild(row);
         }
 
-        function recordWinner(winnerIdx) {
-            const pot = stake * players.length;
-            players.forEach((p, i) => {
-                p.balance -= stake;
-                if (i === winnerIdx) p.balance += pot;
-            });
+        document.getElementById('setup-container').classList.add('hidden');
+        document.getElementById('player-container').classList.remove('hidden');
+    }
 
-            if (currentHole < totalHoles) {
-                currentHole++;
-                renderGame();
-            } else {
-                showResults();
-            }
+    function calculateResults() {
+        const names = document.getElementsByClassName('g-name');
+        const wins = document.getElementsByClassName('g-wins');
+        const resultsList = document.getElementById('results-list');
+        const resultsDiv = document.getElementById('results');
+        
+        resultsList.innerHTML = '';
+        let playerData = [];
+        let totalPool = 0;
+
+        // 1. Collect Data
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i].value || `Player ${i + 1}`;
+            const holesWon = parseInt(wins[i].value) || 0;
+            
+            // Logic: In a standard "winner takes all hole" model, 
+            // the total holes won by everyone should ideally equal total holes * (players - 1) 
+            // if everyone is playing against everyone.
+            // HOWEVER, a simpler and more common casual way:
+            // Each hole won is worth (Stake * (Number of Players - 1))
+            // Because if I win a hole, the other (N-1) players each owe me the stake.
+            
+            const playersCount = names.length;
+            const earnings = holesWon * stake * (playersCount - 1);
+            
+            playerData.push({ name, earnings });
+            totalPool += earnings; 
         }
 
-        function showResults() {
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-            const list = document.getElementById('results-list');
-            list.innerHTML = '';
+        // 2. Adjust for "The Pot"
+        // In a zero-sum game, the sum of all winnings must be 0.
+        // The logic used above calculates "Gross Winnings". 
+        // To find the actual profit/loss, we need to know how much each person "paid" into the pot.
+        // Assuming everyone pays (Stake * TotalHoles) to start:
+        const costToPlay = totalHoles * stake;
+        
+        // In most casual games, the total money won equals the total money lost.
+        // We will calculate Net = (Gross Winnings) - (Contribution)
+        // But wait, a cleaner way for user experience:
+        // Net = (Holes Won * Stake * (Players-1)) - (Total Holes * Stake)
+        // Let's use that.
 
-            // Sort: highest money to lowest
-            const sorted = [...players].sort((a, b) => b.balance - a.balance);
+        playerData.forEach(player => {
+            // Note: We need to recalculate net correctly.
+            // Let's find the net for each:
+            // A player wins 'W' holes. For each hole, they collect 'Stake' from every other player.
+            // Total collected = W * Stake * (Players - 1)
+            // Total spent = TotalHoles * Stake
+            // This assumes every hole is contested by every player.
+        });
 
-            sorted.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                const colorClass = p.balance >= 0 ? 'win' : 'loss';
-                const sign = p.balance >= 0 ? '+' : '';
-                div.innerHTML = `<span>${p.name}</span><span class="${colorClass}">${sign}$${p.balance.toFixed(2)}</span>`;
-                list.appendChild(div);
-            });
+        // Let's re-run logic inside the loop for clarity
+        const playersCount = names.length;
+        const playersCost = totalHoles * stake;
+
+        resultsList.innerHTML = '';
+        
+        // We need to calculate how many holes were "won" in total to ensure the math balances.
+        // In a simple "Winner of the hole gets $X from everyone else" model:
+        // Player i profit = (HolesWon_i * Stake * (Players-1)) - (TotalHoles * Stake)
+        // This logic only works if exactly one person wins every hole.
+        
+        // Let's refine:
+        // If I win a hole, I get $Stake from every OTHER player.
+        // My profit = (MyWins * Stake * (Players-1)) - (TotalHoles * Stake)
+        
+        // Corrected Calculation Loop
+        let totalNet = 0;
+        const finalCalculations = [];
+
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i].value || `Player ${i + 1}`;
+            const holesWon = parseInt(wins[i].value) || 0;
+            
+            const grossWon = holesWon * stake * (playersCount - 1);
+            const net = grossWon - (totalHoles * stake);
+            
+            finalCalculations.push({ name, net });
+            totalNet += net;
         }
-    </script>
+
+        // Display
+        finalCalculations.forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            const sign = p.net >= 0 ? '+' : '';
+            const cssClass = p.net >= 0 ? 'win' : 'loss';
+            
+            item.innerHTML = `
+                <span>${p.name}</span>
+                <span class="${cssClass}">${sign}$${p.net.toFixed(2)}</span>
+            `;
+            resultsList.appendChild(item);
+        });
+
+        resultsDiv.style.display = 'block';
+        resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetApp() {
+        document.getElementById('setup-container').classList.remove('hidden');
+        document.getElementById('player-container').classList.add('hidden');
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('num-golfers').value = 4;
+        document.getElementById('stake-per-hole').value = 1.00;
+        document.getElementById('total-holes').value = 18;
+    }
+</script>
+
 </body>
 </html>
