@@ -147,7 +147,7 @@
         </div>
         <div class="input-group">
             <label>Stake per Hole ($)</label>
-            <input type="number" id="stake-per-hole" min="0.01" step="0.01" value="1.00">
+            <input type="number" id="stake-per-hole" min="1" step="1" value="1">
         </div>
         <div class="input-group">
             <label>Total Holes Played</label>
@@ -211,89 +211,29 @@
         
         resultsList.innerHTML = '';
         let playerData = [];
-        let totalPool = 0;
 
         // 1. Collect Data
         for (let i = 0; i < names.length; i++) {
             const name = names[i].value || `Player ${i + 1}`;
             const holesWon = parseInt(wins[i].value) || 0;
-            
-            // Logic: In a standard "winner takes all hole" model, 
-            // the total holes won by everyone should ideally equal total holes * (players - 1) 
-            // if everyone is playing against everyone.
-            // HOWEVER, a simpler and more common casual way:
-            // Each hole won is worth (Stake * (Number of Players - 1))
-            // Because if I win a hole, the other (N-1) players each owe me the stake.
-            
             const playersCount = names.length;
-            const earnings = holesWon * stake * (playersCount - 1);
+            const earnings = holesWon * stake * (playersCount) - (stake * totalHoles);
             
             playerData.push({ name, earnings });
-            totalPool += earnings; 
         }
-
-        // 2. Adjust for "The Pot"
-        // In a zero-sum game, the sum of all winnings must be 0.
-        // The logic used above calculates "Gross Winnings". 
-        // To find the actual profit/loss, we need to know how much each person "paid" into the pot.
-        // Assuming everyone pays (Stake * TotalHoles) to start:
-        const costToPlay = totalHoles * stake;
-        
-        // In most casual games, the total money won equals the total money lost.
-        // We will calculate Net = (Gross Winnings) - (Contribution)
-        // But wait, a cleaner way for user experience:
-        // Net = (Holes Won * Stake * (Players-1)) - (Total Holes * Stake)
-        // Let's use that.
-
-        playerData.forEach(player => {
-            // Note: We need to recalculate net correctly.
-            // Let's find the net for each:
-            // A player wins 'W' holes. For each hole, they collect 'Stake' from every other player.
-            // Total collected = W * Stake * (Players - 1)
-            // Total spent = TotalHoles * Stake
-            // This assumes every hole is contested by every player.
-        });
-
-        // Let's re-run logic inside the loop for clarity
-        const playersCount = names.length;
-        const playersCost = totalHoles * stake;
 
         resultsList.innerHTML = '';
-        
-        // We need to calculate how many holes were "won" in total to ensure the math balances.
-        // In a simple "Winner of the hole gets $X from everyone else" model:
-        // Player i profit = (HolesWon_i * Stake * (Players-1)) - (TotalHoles * Stake)
-        // This logic only works if exactly one person wins every hole.
-        
-        // Let's refine:
-        // If I win a hole, I get $Stake from every OTHER player.
-        // My profit = (MyWins * Stake * (Players-1)) - (TotalHoles * Stake)
-        
-        // Corrected Calculation Loop
-        let totalNet = 0;
-        const finalCalculations = [];
-
-        for (let i = 0; i < names.length; i++) {
-            const name = names[i].value || `Player ${i + 1}`;
-            const holesWon = parseInt(wins[i].value) || 0;
-            
-            const grossWon = holesWon * stake * (playersCount - 1);
-            const net = grossWon - (totalHoles * stake);
-            
-            finalCalculations.push({ name, net });
-            totalNet += net;
-        }
 
         // Display
-        finalCalculations.forEach(p => {
+        playerData.forEach(p => {
             const item = document.createElement('div');
             item.className = 'result-item';
-            const sign = p.net >= 0 ? '+' : '';
-            const cssClass = p.net >= 0 ? 'win' : 'loss';
+            const sign = p.earnings >= 0 ? '+' : '';
+            const cssClass = p.earnings >= 0 ? 'win' : 'loss';
             
             item.innerHTML = `
                 <span>${p.name}</span>
-                <span class="${cssClass}">${sign}$${p.net.toFixed(2)}</span>
+                <span class="${cssClass}">${sign}$${p.earnings.toFixed(2)}</span>
             `;
             resultsList.appendChild(item);
         });
