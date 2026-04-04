@@ -215,7 +215,7 @@
         // 1. Collect Data
         for (let i = 0; i < names.length; i++) {
             const name = names[i].value || `Player ${i + 1}`;
-            const holesWon = parseInt(wins[i].value) || 0;
+            const holesWon = parseFloat(wins[i].value) || 0;
             const playersCount = names.length;
             const earnings = holesWon * stake * (playersCount) - (stake * totalHoles);
             
