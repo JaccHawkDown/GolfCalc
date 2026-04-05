@@ -168,7 +168,34 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+
+<script type="module">
+    import firebase from "firebase/compat/app";
+    // Required for side-effects
+    import "firebase/firestore";
+    const firebaseConfig = {
+    apiKey: "AIzaSyB6PXbhXBrGKgqoy9ctH6bCyuTz976ma-w",
+    authDomain: "golf-tracking-a2a70.firebaseapp.com",
+    projectId: "golf-tracking-a2a70",
+    storageBucket: "golf-tracking-a2a70.firebasestorage.app",
+    messagingSenderId: "244567400022",
+    appId: "1:244567400022:web:3ccbfb5a9aff3ace9d65f7",
+    measurementId: "G-C83L6R9ZXT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = firebase.firestore(app);
+
+</script>
+
 <script>
+
+    db.collection("users").add({
+        name: "Zach"
+    })
+
     let stake = 0;
     let totalHoles = 0;
 
